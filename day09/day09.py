@@ -20,41 +20,25 @@ def get_adjacent_points(grid, i, j):
     return adjacent       
 
 def is_low_point(grid, pt, adjacent):
+    if len(adjacent) == 0:
+        return False
+
     return all([grid[pt[0]][pt[1]] < grid[p[0]][p[1]] for p in adjacent])
 
-def get_basin(grid, i, j, basin):
-    adjacent = get_adjacent_points(grid, i, j)
-    basin.append([i,j])
+def get_basin(grid, pt, basin):
+    adjacent = get_adjacent_points(grid, pt[0], pt[1])
 
-    for pt in adjacent:
-        pt_adjacent = get_adjacent_points(grid, pt[0], pt[1])
-        for b in basin:
-            if b in pt_adjacent:
-                pt_adjacent.remove(b)
-        
-        if is_low_point(grid, pt, pt_adjacent):
-            basin += get_basin(grid, pt[0], pt[i], basin)
+    # remove anything currently in the basin from the list of adjacent points
+    for b in basin:
+        if b in adjacent:
+            adjacent.remove(b)
+
+    if is_low_point(grid, pt, adjacent):
+        basin.append(pt)
+        for ap in adjacent:
+            basin = get_basin(grid, ap, basin)
     
     return basin
-
-
-
-def get_basin_recursion(grid, i, j, basin):
-    # get the neighbouring points, and remove anything in the current basin
-    adjacent = get_adjacent_points(grid, i, j)
-    
-    for pt in adjacent:
-        # get this point's neighbours and compare, but remove the current basin first
-        pt_adjacent = get_adjacent_points(grid, pt[0], pt[1])
-        for b in basin:
-            if b in pt_adjacent:
-                pt_adjacent.remove(b)
-
-        if is_low_point(grid, pt, pt_adjacent):
-            basin.append(pt)
-    
-    return len(basin)
-    
 
 
 def part_1(grid):
@@ -74,11 +58,12 @@ def part_2(grid):
             adjacent = get_adjacent_points(grid, i, j)
             if is_low_point(grid, [i, j], adjacent):
                 # get the size of the basin
-                basins.append(get_basin(grid, i, j, []))
+                basins.append(len(get_basin(grid, [i,j],basin=[])))
 
-    print(basins)
+    basins.sort(reverse=True)
+    print(basins[0]*basins[1]*basins[2])
 
 if __name__ == "__main__":
-    depths = read_input("example.txt")
+    depths = read_input("input.txt")
     part_1(depths)
     part_2(depths)
