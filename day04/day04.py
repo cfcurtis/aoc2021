@@ -1,6 +1,3 @@
-from typing import final
-
-
 MARK_NUM = -1
 
 def read_input(filename):
@@ -86,6 +83,6 @@ def part_2(called,boards):
     return calc_final_sum(boards[last] * last_win[-1])
 
 if __name__ == '__main__':
-    called, boards = read_input("examples.txt")
+    called, boards = read_input("input.txt")
     print(part_1(called, boards))
     print(part_2(called, boards))
