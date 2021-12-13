@@ -1,4 +1,4 @@
-
+import copy
 
 class Cave:
     def __init__(self,name):
@@ -7,7 +7,7 @@ class Cave:
         self.visited = 0
     
     def visit_limit(self):
-        return self.visited > 0 and self.is_small
+        return self.visited > 0 and self.is_small()
     
     def is_small(self):
         return self.name.islower() and not self.is_end()
@@ -30,48 +30,40 @@ class Cave:
         return str
 
 def spawn_new(path):
-    new_path = path.copy()
-    for c in new_path:
-        if c.name != 'start':
-            c.visited = 0
-    
+    new_path = copy.deepcopy(path)
     return new_path
 
-def walk(paths, current_path):
-    for c in current_path[-1].connections:
-        new_path = spawn_new(current_path)
+def walk(paths, current):
+    current_path = paths[-1]
 
-        # stop if we've reached the visit limit in a single path
-        if c.visit_limit():
-            paths.append(current_path)
-            current_path = new_path
-            continue
+    # if we can't visit the cave, return before adding
+    if current.is_small() and any([current.name in c.name for c in current_path]):
+        del paths[-1]
+        return
 
-        # if we've reached the last node, add self first
-        current_path.append(c)
-        c.visited += 1
+    current.visited += 1
+    current_path.append(current)
 
-        if c.is_end():
-            paths.append(current_path)
-            current_path = new_path
-            continue
-        
+    if current.is_end():
+        return
+
+    for c in current.connections:
         # otherwise, keep going
-        walk(paths, current_path)
+        walk(paths, c)
+        branch = spawn_new(current_path)
+        paths.append(branch)
         
 def part_1(caves):
     start = [c for c in caves if c.name == 'start'][0]
-    start.visited += 1
-    paths = [[start]]
-    current_path = paths[0]
-    walk(paths,current_path)
+    paths = [[]]
+    walk(paths,start)
     valid_paths = [path for path in paths if path[-1].name == 'end']
-    for path in paths:
-        print([c.name for c in path])
+    print(len(valid_paths))
+    print(len(paths))
 
 if __name__ == '__main__':
     caves = []
-    with open('example.txt','r') as f:
+    with open('input.txt','r') as f:
         for line in f.readlines():
             a,b = line.strip().split("-")
             ca = Cave(a)
