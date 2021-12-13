@@ -1,16 +1,10 @@
-import copy
-
 class Cave:
     def __init__(self,name):
         self.name = name
         self.connections = []
-        self.visited = 0
-    
-    def visit_limit(self):
-        return self.visited > 0 and self.is_small()
     
     def is_small(self):
-        return self.name.islower() and not self.is_end()
+        return self.name.islower()
     
     def is_end(self):
         return self.name == 'end'
@@ -30,36 +24,49 @@ class Cave:
         return str
 
 def spawn_new(path):
-    new_path = copy.deepcopy(path)
+    new_path = path.copy()
     return new_path
 
-def walk(paths, current):
-    current_path = paths[-1]
-
-    # if we can't visit the cave, return before adding
-    if current.is_small() and any([current.name in c.name for c in current_path]):
-        del paths[-1]
+def walk(paths, current_path, current_cave, limit):
+    # can never return to the starting cave
+    if current_cave.name == 'start' and len(current_path) > 0:
         return
 
-    current.visited += 1
-    current_path.append(current)
-
-    if current.is_end():
+    # if it's already in the path we can't go back
+    if current_cave.is_small() and limit(current_cave.name, current_path):
         return
 
-    for c in current.connections:
+    current_path.append(current_cave.name)
+
+    if current_cave.is_end():
+        paths.append(current_path)
+        return
+
+    for c in current_cave.connections:
         # otherwise, keep going
-        walk(paths, c)
         branch = spawn_new(current_path)
-        paths.append(branch)
+        walk(paths, branch, c, limit)
+        
+def part_1_limit(name, path):
+    return name in path
+    
+def part_2_limit(name, path):
+    small_caves = [p for p in path if p.islower()]
+
+    return name in path and len(set(small_caves)) < len(small_caves)
         
 def part_1(caves):
     start = [c for c in caves if c.name == 'start'][0]
-    paths = [[]]
-    walk(paths,start)
-    valid_paths = [path for path in paths if path[-1].name == 'end']
-    print(len(valid_paths))
+    paths = []
+    walk(paths,[], start, part_1_limit)
     print(len(paths))
+        
+def part_2(caves):
+    start = [c for c in caves if c.name == 'start'][0]
+    paths = []
+    walk(paths,[], start, part_2_limit)
+    print(len(paths))
+
 
 if __name__ == '__main__':
     caves = []
@@ -81,5 +88,6 @@ if __name__ == '__main__':
             
             ca.add_connection(cb)
             cb.add_connection(ca)
-    
-    part_1(caves)
+
+    # part_1(caves)
+    part_2(caves)
