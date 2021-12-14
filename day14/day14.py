@@ -29,28 +29,24 @@ def part_1(template,pairs,reps):
     
     print(max(counts.values()) - min(counts.values()))
 
-def part_2(template,pairs,reps):
-    total_counts = {val: template.count(val) for val in pairs.values()}
-    # split and grow independently
-    to_grow = template
-    for _ in range(2):
-        polymers = [to_grow[i:i+2] for i in range(len(to_grow) - 1)]
-        for i in range(len(polymers)):
-            for rep in range(reps):
-                polymers[i], counts = grow_polymer(polymers[i],pairs)
-                total_counts = {k: total_counts[k] + counts[k] for k in total_counts.keys()}
-                if 'BH' in polymers[i]:
-                    print('BH found')
-            
-            # collapse each one down to its ends
-            polymers[i] = polymers[i][0] + polymers[i][-1]
+def part_2(template,pairs):
+    polymer = template
+    total_counts = {val: polymer.count(val) for val in pairs.values()}
+    for group in range(4):
+        for rep in range(10):
+            polymer, counts = grow_polymer(polymer, pairs)
+            total_counts = {k: total_counts[k] + counts[k] for k in total_counts.keys()}
         
-        # cut off the ends
-        polymers[0] = polymers[0][1]
-        polymers[-1] = polymers[-1][0]
+        # grow up to 10, then split
+        p_len = len(polymer) // 4
+        polymers = [
+            polymer[:p_len],
+            polymer[p_len:2*p_len],
+            polymer[2*p_len:3*p_len],
+            polymer[3*p_len:]
+        ]
 
-        # concatenate into the new one to grow
-        to_grow = ''.join(polymers)
+
 
     print(total_counts)
     print(max(counts.values()) - min(counts.values()))
