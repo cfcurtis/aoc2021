@@ -29,28 +29,25 @@ def part_1(template,pairs,reps):
     
     print(max(counts.values()) - min(counts.values()))
 
-def part_2(template,pairs):
+def part_2(template,pairs,reps):
+    total_counts = {val: template.count(val) for val in pairs.values()}
     polymer = template
-    total_counts = {val: polymer.count(val) for val in pairs.values()}
-    for group in range(4):
-        for rep in range(10):
-            polymer, counts = grow_polymer(polymer, pairs)
-            total_counts = {k: total_counts[k] + counts[k] for k in total_counts.keys()}
+
+    # group the letters, just like the fish
+    for rep in range(reps):
+        print(f'Rep {rep}: {polymer}')
+        combos = [polymer[i-1:i+1] for i in range(1,len(polymer))]
+        poly_set = set(combos)
+        polymer = polymer[0]
+
+        # need to account for multipliers
+        for p in poly_set:
+            polymer += pairs[p] + p[1]
+            total_counts[pairs[p]] += combos.count(p)
         
-        # grow up to 10, then split
-        p_len = len(polymer) // 4
-        polymers = [
-            polymer[:p_len],
-            polymer[p_len:2*p_len],
-            polymer[2*p_len:3*p_len],
-            polymer[3*p_len:]
-        ]
-
-
+        print(total_counts)
 
     print(total_counts)
-    print(max(counts.values()) - min(counts.values()))
-
 
 if __name__ == '__main__':
     template,pairs = read_input('example.txt')
