@@ -33,33 +33,24 @@ def part_1(template,pairs,reps):
 def part_2(template,pairs,reps):
     letter_counts = {val: template.count(val) for val in pairs.values()}
     pair_counts = {key: 0 for key in pairs.keys()}
-    polymer = template
+    for i in range(1,len(template)):
+        pair_counts[template[i-1:i+1]] += 1
 
     # group the letters, just like the fish
     for rep in range(reps):
-        # print(f'Rep {rep}: {polymer}')
-        combos = [polymer[i-1:i+1] for i in range(1,len(polymer))]
-        poly_set = []
-        for c in combos:
-            if c not in poly_set:
-                poly_set.append(c)
-            
-            if rep == 0:
-                pair_counts[c] += 1
-
-        polymer = polymer[0]
-
-        # need to account for multipliers
-        for p in poly_set:
-            polymer += pairs[p] + p[1]
-            letter_counts[pairs[p]] += combos.count(p) * pair_counts[p]
-            pair_counts[p] += 1
-
         print(f'Rep {rep}: {letter_counts}')
+        this_rep = pair_counts.copy()
+        for pair, count in this_rep.items():
+            new_letter = pairs[pair]
+            letter_counts[new_letter] += count
+            pair_counts[pair[0] + new_letter] += count
+            pair_counts[new_letter + pair[1]] += count
+            # remove the pair we just split up
+            pair_counts[pair] -= count
 
-    print(letter_counts)
+    print(max(letter_counts.values()) - min(letter_counts.values()))
 
 if __name__ == '__main__':
-    template,pairs = read_input('example.txt')
+    template,pairs = read_input('input.txt')
     part_1(template,pairs,10)
-    part_2(template,pairs,10)
+    part_2(template,pairs,40)
