@@ -1,3 +1,4 @@
+import copy
 risk = []
 
 def read_file(filename):
@@ -61,6 +62,24 @@ def part_1():
             
     print(min_risk[(len(risk) - 1, len(risk[0]) - 1)])
 
+def part_2():
+    global risk
+    tile = copy.deepcopy(risk)
+    # first grow right
+    for i in range(len(risk)):
+        for n in range(4):
+            risk[i] += [(r + n) % 9 + 1 for r in tile[i]]
+    
+    # then downwards
+    tile = copy.deepcopy(risk)
+    for n in range(4):
+        for i in range(len(tile)):
+            risk.append([(r + n) % 9 + 1 for r in tile[i]])
+
+    print(len(risk))
+    print(len(risk[0]))
+
 if __name__ == '__main__':
     read_file('input.txt')
+    part_2()
     part_1()
