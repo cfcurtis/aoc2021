@@ -1,13 +1,8 @@
 risk = []
-min_path = []
-min_risk = 0
-last_row = 0
-last_col = 0
 
 def read_file(filename):
     with open(filename,'r') as f:
         global risk
-        global visited
         risk = []
         for line in f:
             risk.append([int(tok) for tok in list(line.strip())])
@@ -25,71 +20,47 @@ def get_neighbours(pt):
     
     return neighbours
 
-def print_risk():
+def print_risk(path, min_risk = None):
     for i in range(len(risk)):
         row = ''
         for j in range(len(risk[i])):
-            if (i,j) in min_path:
-                row += str(risk[i][j])
+            if (i,j) in path:
+                if min_risk is not None:
+                    row += f'{min_risk[(i,j)]:4}'
+                else:
+                    row += str(risk[i][j])
             else:
                 row += '.'
         print(row)
 
-def walk(current_path, pt, val):
-    global min_path
-    global min_risk
-    
-    if val > min_risk:
-        # no use continuing on, it's already bigger
-        return
-
-    # add upon entry
-    current_path.append(pt)
-    val += risk[pt[0]][pt[1]]
-    # print('Visiting ', current_pt)
-
-    # check if we've hit a new minimum
-    if pt == (last_row, last_col):
-        if val < min_risk:
-            min_risk = val
-            min_path = current_path
-        return
-
-    # otherwise, get all the neighbours and iterate
-    neighbours = [(i,j) for i in range(pt[0]-1, pt[1] + 2) for j in range(pt[0]-1, pt[1] + 2)]
-    neighbours = [n for n in neighbours if n not in current_path]
-
-    if len(neighbours) == 0:
-        return
-
-    n_risk = [risk[n[0]][n[1]] for n in neighbours]
-    neighbours = [n for _, n in sorted(zip(n_risk,neighbours))]
-    
-    for n in neighbours:
-        branch = current_path.copy()
-        walk(branch, n, val)
-
 def part_1():
-    global min_risk
-    global last_row
-    global last_col
-    last_row = len(risk) - 1
-    last_col = len(risk[0]) - 1
+    # initialize min_risk to big number
+    min_risk = {(i,j): 2**32 for i in range(0,len(risk)) for j in range(0,len(risk[0]))}
+    visited = set()
+    current = (0,0)
+    min_risk[current] = 0
+    to_visit = [(0, current)]
 
-    # initialize min_risk to the diagonal
-    min_risk = 0
-    for i in range(len(risk)):
-        for j in range(len(risk[i])):
-            min_risk += risk[i][j]
+    while to_visit:
+        # sort to find the lowest one to check next
+        to_visit.sort(reverse=True)
+        current_total, current = to_visit.pop()
+        visited.add(current)
 
-    print('Diagonal risk:', min_risk)
+        # get the neighbours and their risk values
+        neighbours = [n for n in get_neighbours(current) if n not in visited]
 
-    walk([],(0,0),0)
-    print_risk()
-    print(min_risk - risk[0][0])
+        for n in neighbours:
+            total_risk = risk[n[0]][n[1]] + current_total
+            if total_risk < min_risk[n]:
+                min_risk[n] = total_risk
+
+                # add the total risk to the list to visit
+                to_visit.append((total_risk,n))
+        
+            
+    print(min_risk[(len(risk) - 1, len(risk[0]) - 1)])
 
 if __name__ == '__main__':
-    read_file('example.txt')
-    
-    import cProfile
-    cProfile.run('part_1()')
+    read_file('input.txt')
+    part_1()
